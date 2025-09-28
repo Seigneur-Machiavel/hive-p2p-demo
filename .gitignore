@@ -1,2 +1,5 @@
 node_modules/
-package-lock.json
+full/package-lock.json
+server/package-lock.json
+browser/package-lock.json
+browser-min/package-lock.json

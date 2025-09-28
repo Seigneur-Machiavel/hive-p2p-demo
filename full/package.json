@@ -1,0 +1,15 @@
+{
+  "name": "full",
+  "version": "1.0.0",
+  "main": "how-to-import.mjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "hive-p2p": "^1.0.8"
+  }
+}

@@ -1,5 +1,11 @@
-import HiveP2P from "hive-p2p"; // npm install hive-p2p@latest
-HiveP2P.PARAMETERS.NODE.DEFAULT_VERBOSE = 1; // Verbose mode for all nodes
+// THIS FILE HAVE NO UTILITIES...
+// IT IS JUST A DEMO OF "FULL" IMPORT
+// npm install hive-p2p@latest
+
+import HiveP2P from "hive-p2p";
+
+// Any parameters can be changed before creating nodes...
+HiveP2P.PARAMETERS.NODE.DEFAULT_VERBOSE = 2;
 
 // Manual identity (for demo purposes)
 const cryptoCodex = await HiveP2P.CryptoCodex.createCryptoCodex(true);
@@ -21,7 +27,7 @@ for (const bee of [bee0, bee1, bee2])
 
 // Listen for gossip messages (broadcast to all)
 for (const bee of [bee0, bee1, bee2])
-	bee.onGossipData((fromId, message) => console.log(`[${bee.id}]: ${message}`));
+	bee.onGossipData((fromId, message) => console.log(`[${bee.id}]: from [${fromId}]: ${message}`));
 
 
 while (true) {
