@@ -15,6 +15,14 @@
 		{
 			"type": "node",
 			"request": "launch",
+			"name": "Simulator",
+			"skipFiles": ["<node_internals>/**"],
+			"program": "${workspaceFolder}\\full\\simulator-run.mjs",
+			"runtimeArgs": ["--inspect"]
+		},
+		{
+			"type": "node",
+			"request": "launch",
 			"name": "Server import",
 			"skipFiles": ["<node_internals>/**"],
 			"program": "${workspaceFolder}\\server\\index.mjs",
