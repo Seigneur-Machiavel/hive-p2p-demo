@@ -7,7 +7,7 @@
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Full import",
+			"name": "Full import demo",
 			"skipFiles": ["<node_internals>/**"],
 			"program": "${workspaceFolder}\\full\\index.mjs",
 			"runtimeArgs": ["--inspect"]
@@ -23,17 +23,9 @@
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Browser import",
-			"skipFiles": ["<node_internals>/**"],
-			"program": "${workspaceFolder}\\browser\\index.mjs",
-			"runtimeArgs": ["--inspect"]
-		},
-		{
-			"type": "node",
-			"request": "launch",
 			"name": "Browser-min import",
 			"skipFiles": ["<node_internals>/**"],
-			"program": "${workspaceFolder}\\browser-min\\index.mjs",
+			"program": "${workspaceFolder}\\browser-min\\index.js",
 			"runtimeArgs": ["--inspect"]
 		}
 	]

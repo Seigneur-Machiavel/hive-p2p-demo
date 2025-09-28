@@ -4,8 +4,8 @@
 
 import HiveP2P from "hive-p2p";
 
-// Any parameters can be changed before creating nodes...
-HiveP2P.PARAMETERS.NODE.DEFAULT_VERBOSE = 2;
+// Any config can be changed before creating nodes...
+HiveP2P.CONFIG.NODE.DEFAULT_VERBOSE = 2;
 
 // Manual identity (for demo purposes)
 const cryptoCodex = await HiveP2P.CryptoCodex.createCryptoCodex(true);

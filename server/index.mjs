@@ -4,8 +4,8 @@
 
 import HiveP2P from "@hive-p2p/server";
 
-// Any parameters can be changed before creating node...
-HiveP2P.PARAMETERS.NODE.DEFAULT_VERBOSE = 3;
+// Any config can be changed before creating node...
+HiveP2P.CONFIG.NODE.DEFAULT_VERBOSE = 3;
 
 // Manual identity creation for demo purposes...
 // otherwise automatic identity is created
@@ -16,6 +16,7 @@ const bee0 = await HiveP2P.createPublicNode({ domain: 'localhost', port: 12345, 
 
 // Use public node as bootstrap by extracting its identity
 const identity = bee0.publicIdentity;
+console.log("Public identity:", identity);
 
 // In other node: add public identity as bootstrap
 const bootstraps = [identity];
