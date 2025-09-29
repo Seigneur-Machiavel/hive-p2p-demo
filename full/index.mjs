@@ -13,8 +13,8 @@ const cryptoCodex = await HiveP2P.CryptoCodex.createCryptoCodex(true);
 // Create a public node with manual identity and custom domain/port
 const bee0 = await HiveP2P.createPublicNode({ domain: 'localhost', port: 12345, cryptoCodex });
 
-// Use public node as bootstrap by extracting its identity
-const bootstraps = [bee0.publicIdentity];
+// Use public node as bootstrap by extracting its url
+const bootstraps = [bee0.publicUrl];
 
 // Faster way to create a node - automatic identity generation (CryptoCodex)
 // Auto started, connecting to bootstraps then connecting to more peers...

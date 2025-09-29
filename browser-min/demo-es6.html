@@ -7,11 +7,11 @@
     <div id="log"></div>
     
 	<script type="module">
-		import * as HiveP2P from './browser-min/hive-p2p.min.js';
+		import * as HiveP2P from 'https://unpkg.com/@hive-p2p/browser@latest/hive-p2p.min.js';
 		HiveP2P.CONFIG.NODE.DEFAULT_VERBOSE = 4;
 		HiveP2P.CONFIG.CLOCK.mockMode = true;
 		
-		const bootstraps = [{id: '026e9cd383527106', publicUrl: 'ws://localhost:12345'}];
+		const bootstraps = ['ws://localhost:12345'];
 		const node = await HiveP2P.createNode({ bootstraps });
 	</script>
 </body>

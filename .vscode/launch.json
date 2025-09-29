@@ -7,14 +7,6 @@
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Full import demo",
-			"skipFiles": ["<node_internals>/**"],
-			"program": "${workspaceFolder}\\full\\index.mjs",
-			"runtimeArgs": ["--inspect"]
-		},
-		{
-			"type": "node",
-			"request": "launch",
 			"name": "Simulator",
 			"skipFiles": ["<node_internals>/**"],
 			"program": "${workspaceFolder}\\full\\simulator-run.mjs",
@@ -23,17 +15,17 @@
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Server import",
+			"name": "Full import demo",
 			"skipFiles": ["<node_internals>/**"],
-			"program": "${workspaceFolder}\\server\\index.mjs",
+			"program": "${workspaceFolder}\\full\\index.mjs",
 			"runtimeArgs": ["--inspect"]
 		},
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Browser-min import",
+			"name": "Server import",
 			"skipFiles": ["<node_internals>/**"],
-			"program": "${workspaceFolder}\\browser-min\\index.js",
+			"program": "${workspaceFolder}\\server\\index.mjs",
 			"runtimeArgs": ["--inspect"]
 		}
 	]
