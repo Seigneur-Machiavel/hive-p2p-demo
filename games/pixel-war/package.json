@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@hive-p2p/server": "^1.0.27",
+    "@hive-p2p/server": "^1.0.28",
     "express": "^5.1.0"
   }
 }
