@@ -27,6 +27,14 @@
 			"skipFiles": ["<node_internals>/**"],
 			"program": "${workspaceFolder}\\server\\index.mjs",
 			"runtimeArgs": ["--inspect"]
+		},
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "games/pixel-war",
+			"skipFiles": ["<node_internals>/**"],
+			"program": "${workspaceFolder}\\games\\pixel-war\\server.mjs",
+			"runtimeArgs": ["--inspect"]
 		}
 	]
 }

@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>PixelWars - Decentralized Pixel Battle</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #0f0;
+            overflow: hidden;
+        }
+        #container {
+            display: flex;
+            height: 100vh;
+            gap: 20px;
+            padding: 20px;
+        }
+        #main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        #canvas-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #111;
+            border: 2px solid #0f0;
+            position: relative;
+        }
+        #canvas {
+            image-rendering: pixelated;
+            cursor: crosshair;
+        }
+        #cooldown {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.8);
+            padding: 10px;
+            border: 1px solid #0f0;
+            min-width: 150px;
+        }
+        #cooldown-bar {
+            height: 8px;
+            background: #0f0;
+            margin-top: 5px;
+            transition: width 0.1s linear;
+        }
+        #sidebar {
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .panel {
+            background: #111;
+            border: 2px solid #0f0;
+            padding: 15px;
+        }
+        .panel h2 {
+            margin-bottom: 10px;
+            color: #0ff;
+            font-size: 14px;
+        }
+        .stat {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            font-size: 12px;
+        }
+        .stat-label { color: #888; }
+        .stat-value { color: #0f0; font-weight: bold; }
+        #color-preview {
+            width: 100%;
+            height: 40px;
+            border: 1px solid #0f0;
+            margin-top: 10px;
+        }
+        #status {
+            padding: 10px;
+            background: #111;
+            border: 2px solid #0f0;
+            font-size: 12px;
+        }
+        .connecting { color: #ff0; }
+        .connected { color: #0f0; }
+        .error { color: #f00; }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="main">
+            <div id="canvas-wrapper">
+                <canvas id="canvas"></canvas>
+                <div id="cooldown" style="display:none;">
+                    <div>COOLDOWN</div>
+                    <div id="cooldown-bar"></div>
+                </div>
+            </div>
+            <div id="status">Initializing HiveP2P...</div>
+        </div>
+        
+        <div id="sidebar">
+            <div class="panel">
+                <h2>YOUR IDENTITY</h2>
+                <div class="stat">
+                    <span class="stat-label">Peer ID:</span>
+                    <span class="stat-value" id="peer-id">---</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Color:</span>
+                </div>
+				<div class="stat" id="neighborsList">
+
+				</div>
+                <div id="color-preview"></div>
+            </div>
+            
+            <div class="panel">
+                <h2>NETWORK STATS</h2>
+                <div class="stat">
+                    <span class="stat-label">Connected Peers:</span>
+                    <span class="stat-value" id="peers-count">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Total Pixels:</span>
+                    <span class="stat-value" id="total-pixels">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Your Pixels:</span>
+                    <span class="stat-value" id="my-pixels">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Pixels/sec:</span>
+                    <span class="stat-value" id="pixels-rate">0</span>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>CONFLICTS</h2>
+                <div class="stat">
+                    <span class="stat-label">Resolved:</span>
+                    <span class="stat-value" id="conflicts">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Your Wins:</span>
+                    <span class="stat-value" id="my-wins">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Your Losses:</span>
+                    <span class="stat-value" id="my-losses">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/@hive-p2p/browser@latest/hive-p2p.min.js" type="module"></script>
+    <script type="module">
+        await new Promise(r => setTimeout(r, 200));
+        
+        class PixelWars {
+            node;
+            #canvas;
+            #ctx;
+            #grid = {}; // {x_y: {color, timestamp, playerId}}
+            #gridSize = 64;
+            #pixelSize = 8;
+            #lastPixel = 0;
+            #cooldown = 1000; // ms
+            #myColor;
+            #stats = { conflicts: 0, myWins: 0, myLosses: 0, myPixels: 0 };
+            #pixelBuffer = []; // Buffer for rate calculation
+            
+            async init() {
+				await new Promise(r => setTimeout(r, 1000));
+                this.#setupCanvas();
+                this.#updateStatus('Connecting to network...', 'connecting');
+                
+				HiveP2P.CONFIG.TRANSPORTS.SIGNAL_CREATION_TIMEOUT = 1_000;
+                HiveP2P.CONFIG.NODE.DEFAULT_VERBOSE = 4;
+
+				const bootstraps = [`ws://${window.location.hostname}:27260`];
+                this.node = await HiveP2P.createNode({ bootstraps });
+                
+                this.#myColor = this.#idToColor(this.node.id);
+                this.#setupListeners();
+                this.#updateUI();
+                this.#startStatsLoop();
+                
+                // Request initial state from network
+				while (this.node.peerStore.standardNeighborsList.length === 0) {
+                	await new Promise(r => setTimeout(r, 1000)); // Wait for connections
+					this.#updateStatus('Waiting for peers to connect...', 'connecting');
+				}
+
+                this.#requestState();
+                this.#updateStatus('Connected! Click to place pixels', 'connected');
+            
+				while (true) {
+					await new Promise(r => setTimeout(r, 1000));
+					// array of strings
+					const neighborsList = this.node.peerStore.standardNeighborsList.map(p => p.slice(0, 8));
+					document.getElementById('neighborsList').textContent = `Neighbors: ${neighborsList}`;
+				}
+			}
+            
+            #setupCanvas() {
+                this.#canvas = document.getElementById('canvas');
+                this.#ctx = this.#canvas.getContext('2d');
+                
+                const size = this.#gridSize * this.#pixelSize;
+                this.#canvas.width = size;
+                this.#canvas.height = size;
+                this.#canvas.style.width = size + 'px';
+                this.#canvas.style.height = size + 'px';
+                
+                // Initial clear
+                this.#ctx.fillStyle = '#000';
+                this.#ctx.fillRect(0, 0, size, size);
+                
+                this.#canvas.addEventListener('click', (e) => this.#handleClick(e));
+            }
+            
+            #setupListeners() {
+                this.node.onGossipData((fromId, data) => {
+                    if (data.type === 'pixel') this.#handlePixel(data);
+                    if (data.type === 'state_request') this.#sendState(fromId);
+                });
+                
+                this.node.onMessageData((fromId, data) => {
+                    if (data.type === 'state_response') this.#loadState(data.state);
+                });
+            }
+            
+            #handleClick(e) {
+                const now = HiveP2P.CONFIG.CLOCK.time;
+                if (now - this.#lastPixel < this.#cooldown) return;
+                
+                const rect = this.#canvas.getBoundingClientRect();
+                const x = Math.floor((e.clientX - rect.left) / this.#pixelSize);
+                const y = Math.floor((e.clientY - rect.top) / this.#pixelSize);
+                
+                if (x < 0 || x >= this.#gridSize || y < 0 || y >= this.#gridSize) return;
+                
+                const pixel = {
+                    type: 'pixel',
+                    x, y,
+                    color: this.#myColor,
+                    timestamp: now,
+                    playerId: this.node.id
+                };
+                
+                this.#applyPixel(pixel, false);
+                this.node.broadcast(pixel);
+                this.#lastPixel = now;
+                this.#showCooldown();
+            }
+            
+            #handlePixel(pixel) {
+                const key = `${pixel.x}_${pixel.y}`;
+                const existing = this.#grid[key];
+                
+                // Conflict resolution: last timestamp wins
+                if (!existing) {
+                    this.#applyPixel(pixel, false);
+                    return;
+                }
+                
+                if (pixel.timestamp <= existing.timestamp) return;
+                
+                // Conflict detected
+                this.#stats.conflicts++;
+                if (existing.playerId === this.node.id) {
+                    this.#stats.myLosses++;
+                    this.#stats.myPixels--;
+                } else if (pixel.playerId === this.node.id) {
+                    this.#stats.myWins++;
+                }
+                
+                this.#applyPixel(pixel, false);
+            }
+            
+            #applyPixel(pixel, skipBuffer = false) {
+                const key = `${pixel.x}_${pixel.y}`;
+                const wasMyPixel = this.#grid[key]?.playerId === this.node.id;
+                
+                this.#grid[key] = pixel;
+                this.#drawPixel(pixel.x, pixel.y, pixel.color);
+                
+                if (pixel.playerId === this.node.id && !wasMyPixel) 
+                    this.#stats.myPixels++;
+                
+                if (!skipBuffer) 
+                    this.#pixelBuffer.push(Date.now());
+            }
+            
+            #drawPixel(x, y, color) {
+                this.#ctx.fillStyle = color;
+                this.#ctx.fillRect(x * this.#pixelSize, y * this.#pixelSize, this.#pixelSize, this.#pixelSize);
+            }
+            
+            #requestState() {
+                this.node.broadcast({ type: 'state_request', requesterId: this.node.id });
+            }
+            
+            #sendState(requesterId) {
+                // Only send if we have significant state
+                if (Object.keys(this.#grid).length < 10) return;
+                
+                this.node.sendMessage(requesterId, {
+                    type: 'state_response',
+                    state: this.#grid
+                });
+            }
+            
+            #loadState(state) {
+                for (const key in state) {
+                    const pixel = state[key];
+                    const existing = this.#grid[key];
+                    
+                    if (!existing || pixel.timestamp > existing.timestamp) 
+                        this.#applyPixel(pixel, true);
+                }
+            }
+            
+            #idToColor(id) {
+                // Hash peer ID to RGB
+                let hash = 0;
+                for (let i = 0; i < id.length; i++) 
+                    hash = ((hash << 5) - hash) + id.charCodeAt(i);
+                
+                const r = (hash & 0xFF0000) >> 16;
+                const g = (hash & 0x00FF00) >> 8;
+                const b = hash & 0x0000FF;
+                
+                return `rgb(${r},${g},${b})`;
+            }
+            
+            #showCooldown() {
+                const cooldownEl = document.getElementById('cooldown');
+                const barEl = document.getElementById('cooldown-bar');
+                
+                cooldownEl.style.display = 'block';
+                barEl.style.width = '100%';
+                
+                const startTime = Date.now();
+                const interval = setInterval(() => {
+                    const elapsed = Date.now() - startTime;
+                    const progress = Math.max(0, 1 - (elapsed / this.#cooldown));
+                    barEl.style.width = (progress * 100) + '%';
+                    
+                    if (progress <= 0) {
+                        clearInterval(interval);
+                        cooldownEl.style.display = 'none';
+                    }
+                }, 50);
+            }
+            
+            #startStatsLoop() {
+                setInterval(() => this.#updateUI(), 500);
+            }
+            
+            #updateUI() {
+                document.getElementById('peer-id').textContent = this.node.id.slice(0, 8);
+                document.getElementById('color-preview').style.background = this.#myColor;
+                
+                const peers = this.node.peerStore.neighborsList.length;
+                document.getElementById('peers-count').textContent = peers;
+                
+                const totalPixels = Object.keys(this.#grid).length;
+                document.getElementById('total-pixels').textContent = totalPixels;
+                document.getElementById('my-pixels').textContent = this.#stats.myPixels;
+                
+                // Calculate pixels/sec from buffer
+                const now = Date.now();
+                this.#pixelBuffer = this.#pixelBuffer.filter(t => now - t < 1000);
+                document.getElementById('pixels-rate').textContent = this.#pixelBuffer.length;
+                
+                document.getElementById('conflicts').textContent = this.#stats.conflicts;
+                document.getElementById('my-wins').textContent = this.#stats.myWins;
+                document.getElementById('my-losses').textContent = this.#stats.myLosses;
+            }
+            
+            #updateStatus(msg, state) {
+                const statusEl = document.getElementById('status');
+                statusEl.textContent = msg;
+                statusEl.className = state;
+            }
+        }
+        
+        // Initialize
+        const game = new PixelWars();
+        game.init().catch(err => {
+			console.error(err.stack);
+            document.getElementById('status').textContent = 'Error: ' + err.message;
+            document.getElementById('status').className = 'error';
+        });
+    </script>
+</body>
+</html>
