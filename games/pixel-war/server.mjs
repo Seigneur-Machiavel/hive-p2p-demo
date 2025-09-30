@@ -4,8 +4,8 @@ import { dirname, join } from 'path';
 import HiveP2P from '@hive-p2p/server';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const HTTP_PORT = 27270;
-const WS_PORT = 27260;
+const HTTP_PORT = 42311;
+const WS_PORT = 42312;
 const domain = '0.0.0.0'; // Replace with your DNS domain
 
 const app = express();
