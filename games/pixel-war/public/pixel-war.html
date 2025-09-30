@@ -181,6 +181,7 @@
                 this.#setupCanvas();
                 this.#updateStatus('Connecting to network...', 'connecting');
                 
+				HiveP2P.CONFIG.TRANSPORTS.CENTRALIZED_STUN_SERVERS = true;
 				HiveP2P.CONFIG.TRANSPORTS.SIGNAL_CREATION_TIMEOUT = 1_000;
                 HiveP2P.CONFIG.NODE.DEFAULT_VERBOSE = 4;
 

@@ -24,7 +24,7 @@ HiveP2P.CONFIG.TRANSPORTS.SIGNAL_CREATION_TIMEOUT = 1_000;
 HiveP2P.CONFIG.NODE.DEFAULT_VERBOSE = 3;
 const cryptoCodex = await HiveP2P.CryptoCodex.createCryptoCodex(true);
 const bootstrap = await HiveP2P.createPublicNode({domain, port: WS_PORT, cryptoCodex});
-const bee1 = await HiveP2P.createNode({ bootstraps: [bootstrap.publicUrl] });
+//const bee1 = await HiveP2P.createNode({ bootstraps: [bootstrap.publicUrl] });
 
 console.log(`[BOOTSTRAP] Running on ${bootstrap.publicUrl}`);
 console.log(`[BOOTSTRAP] Peer ID: ${bootstrap.id}`);
