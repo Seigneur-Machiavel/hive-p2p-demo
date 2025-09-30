@@ -184,7 +184,7 @@
 				HiveP2P.CONFIG.TRANSPORTS.SIGNAL_CREATION_TIMEOUT = 1_000;
                 HiveP2P.CONFIG.NODE.DEFAULT_VERBOSE = 4;
 
-				const bootstraps = [`ws://${window.location.hostname}:27260`];
+				const bootstraps = [`${window.location.hostname}:42312`];
                 this.node = await HiveP2P.createNode({ bootstraps });
                 
                 this.#myColor = this.#idToColor(this.node.id);
