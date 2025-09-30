@@ -185,6 +185,8 @@
                 HiveP2P.CONFIG.NODE.DEFAULT_VERBOSE = 4;
 
 				const bootstraps = [`${window.location.hostname}:42312`];
+				// On proxied environments...
+				bootstraps.push('hive-p2p-pixelwar.pinkparrot.science/ws');
                 this.node = await HiveP2P.createNode({ bootstraps });
                 
                 this.#myColor = this.#idToColor(this.node.id);
